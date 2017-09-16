@@ -7,4 +7,4 @@ _(The Miso Paper is an Asian paste novel.)_
 **O**peratively
 
 
-See [the proposal](proposal/proposal.md).
+This is a work in progress. See [the proposal](proposal/proposal.md).
