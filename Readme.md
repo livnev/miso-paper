@@ -1,4 +1,6 @@
-![MISO PAPER](https://raw.githubusercontent.com/livnev/miso-paper/master/banner.png?raw=true)
+# miso-paper
+
+![MISO PAPER](banner.png)  
 _(The Miso Paper is an Asian paste novel.)_
 
 **M**aker  
