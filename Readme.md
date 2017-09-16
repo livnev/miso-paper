@@ -1,4 +1,4 @@
-![MISO PAPER](banner.png)  
+![MISO PAPER](banner.png?raw=true)  
 _(The Miso Paper is an Asian paste novel.)_
 
 **M**aker  
