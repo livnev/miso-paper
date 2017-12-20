@@ -1,4 +1,5 @@
-
+from eth import Token, Vault
+#from collections import defaultdict
 
 def sgn(value):
     if value == 0:
@@ -10,7 +11,11 @@ def sgn(value):
 
 class Vat:
     # could also be called Vat I guess
-    def __init__(self, how0):
+    def __init__(self, how0, dai, sin):
+        self.dai = dai
+        self.sin = sin
+        # add a (stopped) timesource
+        self.era = lambda : 0
         # labels tags by gem
         self.tags = dict()
         # labels ilks by identifiers
@@ -18,14 +23,10 @@ class Vat:
         # labels urns by identifiers
         self.urns = dict()
         # add a vox
-        self.vox = Vox(wut=1.0, par=1.0, way=1.0, how=how0, tau=0.0)
-        # add a (stopped) timesource
-        self.set_era(lambda : 0)
+        self.vox = Vox(self, par=1.0, how=how0)
+        # add a tap (or vow)
+        self.tap = Tap(self, Vault())
 
-    def set_era(self, era):
-        self.era = era
-        # any component that uses era goes here:
-        self.vox.era = era
         
     def drip(self, ilk_id):
         age = self.era() - self.ilks[ilk_id].rho
@@ -75,10 +76,11 @@ class Vat:
         
         
         
-    def form(self, ilk_id, gem):
+    def form(self, ilk_id, jar, gem):
         if ilk_id in self.ilks:
             raise ValueError("Ilk id already taken!")
-        self.ilks[ilk_id] = Ilk(gem)
+        self.ilks[ilk_id] = Ilk(gem, jar)
+        self.ilks[ilk_id].jar = jar
 
     def mark(self, gem, tag, zzz):
         self.tags[gem].tag = tag
@@ -87,9 +89,36 @@ class Vat:
     def tell(self, wut):
         # update DAI/USD price
         self.vox.wut = wut
-                              
+
+    def bite(self, urn_id):
+        # Sai-style bite, uses a tap
+        # TODO: make generic, a la Dai
+        if self.feel(urn_id) != "Panic":
+            raise ValueError("Urn not fit for riddance!")
+
+        self.urns[urn_id].rid = True
+        
+        rue = self.tab(urn_id)
+        self.sin.mint(self.tap.vault.id, rue)
+        #self.tap.balances[self.sin] += rue
+        
+        ilk = self.ilks[self.urns[urn_id].ilk]
+        gem = ilk.gem
+        axe = ilk.axe
+        owe = (rue * axe * self.vox.par()) / self.tags[gem]
+
+        if owe > self.urns[urn_id].ink:
+            owe = self.urns[urn_id].ink
+
+        self.urns[urn_id].ink -= owe
+        gem.transferFrom(ilk.jar, self.tap.vault.id, owe)
+        #ilk.balance -= owe
+        #self.tap.balances[gem] += owe
+        self.urns[urn_id].art = 0
+                                      
     def _next_urn_id(self):
         return list(filter(lambda id: not id in self.urns.keys(), range(1, len(self.urns.keys())+2)))[0]
+
     
 class Tag:
     def __init__(self):
@@ -97,7 +126,7 @@ class Tag:
         self.zzz = 0
     
 class Ilk:
-    def __init__(self, gem):
+    def __init__(self, gem, jar):
         self.gem = gem
         self.lax = 0
         self.mat = 1.0
@@ -107,8 +136,9 @@ class Ilk:
         self.chi = 1.0
         self.rho = 0
         self.rum = 0.0
+        self.jar = jar
         # instead of using ilk.jar:
-        self.balance = 0.0
+        #self.balance = 0.0
             
 class Urn:
     def __init__(self, ilk_id, lad):
@@ -120,12 +150,14 @@ class Urn:
         self.rid = False
 
 class Vox:
-    def __init__(self, wut, par, way, how, tau):
-        self.wut = wut
+    def __init__(self, vat, par, how):
+        # in Dai code vox doesn't know vat
+        self.vat = vat
+        self.wut = par
         self._par = par
-        self._way = way
+        self._way = how
         self.how = how
-        self.tau = tau
+        self.tau = self.vat.era()
         
     def inj(self, x):
         if x >= 0:
@@ -141,13 +173,13 @@ class Vox:
             return 1 - 1/x
         
     def prod(self):
-        age = self.era() - self.tau
+        age = self.vat.era() - self.tau
         wag = self.how * age
 
         self._par *= self._way**age
         self._way = self.inj(self.prj(self._way) + sgn(self._par - self.wut)*wag)
 
-        self.tau = self.era()
+        self.tau = self.vat.era()
         
     def par(self):
         self.prod()
@@ -157,3 +189,34 @@ class Vox:
         self.prod()
         return self._way
  
+class Tap:
+    # multi-gem tap
+    def __init__(self, vat, vault):
+        self.vat = vat
+        self.vault = vault
+        self.dai = self.vat.dai
+        self.sin = self.vat.sin
+        self.gap = 0
+        #self.balances = defaultdict(lambda : 0.0)
+
+    def joy(self):
+        return self.dai.balanceOf(self.vault)
+        #return self.balances[self.vat.dai]
+    
+    def woe(self):
+        return self.sin.balanceOf(self.vault)
+        #return self.balances[self.vat.sin]
+    
+    def fog(self, gem):
+        return gem.balanceOf(self.vault)
+        #return self.balances[gem]
+        
+    def heal(self):
+        wad = min(self.joy(), self.woe())
+        # annihilate:
+        self.dai.burn(self, self.vault.id, wad)
+        self.sin.burn(self, self.vault.id, wad)
+        #self.balances[self.vat.dai] -= wad
+        #self.balances[self.vat.sin] -= wad
+
+        
